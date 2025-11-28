@@ -1,43 +1,38 @@
-name: Build and Deploy
+name: CI/CD Build & Deploy
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # Fail fast if username secret is missing (helps debug invalid tag)
-      - name: Check Docker Hub username secret
-        run: |
-          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
-            echo "ERROR: DOCKERHUB_USERNAME secret is empty or missing. Add it in Settings → Secrets → Actions and set value to your Docker Hub username (prasannff)."
-            exit 1
-          else
-            echo "DOCKERHUB_USERNAME is present."
-          fi
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build backend image and push
-        uses: docker/build-push-action@v5
+      - name: Build and push backend
+        uses: docker/build-push-action@v4
         with:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/dd-backend:latest
 
-      - name: Build frontend image and push
-        uses: docker/build-push-action@v5
+      - name: Build and push frontend
+        uses: docker/build-push-action@v4
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
@@ -45,19 +40,22 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/dd-frontend:latest
 
   deploy:
-    needs: build
+    needs: build-and-push
     runs-on: ubuntu-latest
-
     steps:
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v0.1.9
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.8.1
         with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            cd ~/discoverdollar-devops-assignment || exit 1
-            git pull || true
-            docker compose pull || true
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to VM
+        run: |
+          ssh -o StrictHostKeyChecking=no -p ${SSH_PORT:-22} ${SSH_USER}@${SSH_HOST} '
+            cd /path/to/your/compose/folder || exit 1
+            docker compose pull --ignore-pull-failures
             docker compose up -d --remove-orphans
-            docker system prune -f || true
+          '
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}

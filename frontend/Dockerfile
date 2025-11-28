@@ -1,23 +1,13 @@
 # frontend/Dockerfile
-
-# -------- build stage --------
-FROM node:18-alpine AS build
+FROM node:18-alpine as builder
 WORKDIR /app
-
-# copy package files and install deps (use package-lock if present)
 COPY package*.json ./
-RUN npm install
-
-# copy entire frontend source (context is the frontend folder)
+RUN npm ci
 COPY . .
+RUN npm run build -- --configuration production
 
-# build the Angular app (generic command works for recent Angular)
-RUN npm run build
-
-# -------- runtime stage (nginx) --------
-FROM nginx:stable-alpine AS runtime
-# the dist folder name must match what you saw earlier: angular-15-crud
-COPY --from=build /app/dist/angular-15-crud /usr/share/nginx/html
-
+FROM nginx:stable-alpine
+COPY --from=builder /app/dist/your-app-name /usr/share/nginx/html
+# optional: include your custom nginx conf if you want to control caching etc.
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
