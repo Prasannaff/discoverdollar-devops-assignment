@@ -37,7 +37,11 @@ services:
       - dd-net
 
   frontend:
-    image: prasannff/dd-frontend:latest
+    # build the frontend image from the local frontend folder
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: prasannff/dd-frontend:temp
     depends_on:
       - backend
     restart: always
@@ -45,6 +49,7 @@ services:
       - "80"
     networks:
       - dd-net
+
 
   nginx:
     image: nginx:stable-alpine
