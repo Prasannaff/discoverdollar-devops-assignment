@@ -9,19 +9,32 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     image: prasannff/dd-backend:latest
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3000
-      # backend should read MONGO_URI from env
       MONGO_URI: "mongodb://root:example@mongo:27017/yourdb?authSource=admin"
     restart: always
+    # Not publishing backend to host — Nginx will proxy to it
     expose:
       - "3000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dd-net
 
   frontend:
     image: prasannff/dd-frontend:latest
@@ -30,6 +43,8 @@ services:
     restart: always
     expose:
       - "80"
+    networks:
+      - dd-net
 
   nginx:
     image: nginx:stable-alpine
@@ -41,6 +56,12 @@ services:
     ports:
       - "80:80"
     restart: always
+    networks:
+      - dd-net
 
 volumes:
   mongo-data:
+
+networks:
+  dd-net:
+    driver: bridge
