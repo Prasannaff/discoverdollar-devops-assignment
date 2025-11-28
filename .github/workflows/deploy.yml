@@ -12,13 +12,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Fail fast if username secret is missing (helps debug invalid tag)
+      - name: Check Docker Hub username secret
+        run: |
+          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+            echo "ERROR: DOCKERHUB_USERNAME secret is empty or missing. Add it in Settings → Secrets → Actions and set value to your Docker Hub username (prasannff)."
+            exit 1
+          else
+            echo "DOCKERHUB_USERNAME is present."
+          fi
+
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build backend image
+      - name: Build backend image and push
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -26,7 +36,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/dd-backend:latest
 
-      - name: Build frontend image
+      - name: Build frontend image and push
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
@@ -46,8 +56,8 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
-            cd ~/discoverdollar-devops-assignment
-            git pull
-            docker compose pull
+            cd ~/discoverdollar-devops-assignment || exit 1
+            git pull || true
+            docker compose pull || true
             docker compose up -d --remove-orphans
-            docker system prune -f
+            docker system prune -f || true
