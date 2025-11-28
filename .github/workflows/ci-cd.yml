@@ -76,9 +76,8 @@ jobs:
           SSH_PORT=${SSH_PORT:-22}
           echo "Deploying to ${SSH_USER}@${SSH_HOST}:${SSH_PORT} ..."
           ssh -o StrictHostKeyChecking=no -p "${SSH_PORT}" "${SSH_USER}@${SSH_HOST}" '
-            # CHANGE THIS to the actual folder on your VM where docker-compose.yml exists:
-            # e.g. cd /home/ubuntu/app
-            cd /home/ubuntu/app || { echo "compose folder not found"; exit 1; }
+            # path where your docker-compose.yml lives on VM (updated)
+            cd /home/ubuntu/discoverdollar-devops-assignment || { echo "compose folder not found"; exit 1; }
 
             # pull updated images and restart stack
             docker compose pull --ignore-pull-failures
