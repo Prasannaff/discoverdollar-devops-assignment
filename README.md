@@ -242,11 +242,3 @@ URL: `http://<your-ec2-ip>`
 
 ![Repo Structure](screenshots/repo-structure.png)
 
----
-
-## 7️⃣ GitHub Actions Workflow File (`deploy.yml`)
-> Screenshot of `.github/workflows/deploy.yml`.
-
-![Workflow File](screenshots/workflow-file.png)
-
----
