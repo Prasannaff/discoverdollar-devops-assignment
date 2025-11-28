@@ -1,13 +1,14 @@
 # 🚀 Discover Dollar – DevOps Assignment
 
-This project is a full-stack **CRUD application** built using the **MEAN stack** (MongoDB, Express.js, Angular 15, Node.js).  
-The objective of this assignment is to **containerize, deploy, and automate** the MEAN application using:
+This repository contains the full DevOps implementation of a **MEAN Stack CRUD Application** deployed using:
 
-- Docker & Docker Hub  
-- Docker Compose  
-- Nginx Reverse Proxy  
-- AWS EC2 (Ubuntu)  
-- GitHub Actions (CI/CD Pipeline)
+- **Docker & Docker Compose**
+- **Docker Hub**
+- **NGINX Reverse Proxy**
+- **AWS EC2 (Ubuntu 22.04)**
+- **GitHub Actions (CI/CD Pipeline)**
+
+The goal of the assignment is to **containerize**, **deploy**, and **automate** the application end-to-end.
 
 ---
 
@@ -27,11 +28,14 @@ Users can:
 - Delete Tutorials  
 - Search Tutorials by Title  
 
-Technologies used:
-- Backend: **Node.js + Express.js**
-- Frontend: **Angular 15**
-- Database: **MongoDB**
-- Deployment: **Docker, Nginx, AWS EC2, GitHub Actions**
+### 🧰 Technologies Used
+| Layer | Technology |
+|-------|------------|
+| Frontend | Angular 15 |
+| Backend | Node.js + Express.js |
+| Database | MongoDB |
+| Deployment | Docker, Nginx, AWS EC2 |
+| CI/CD | GitHub Actions |
 
 ---
 
@@ -43,94 +47,102 @@ Technologies used:
 cd backend
 npm install
 npm start
-# or
-node server.js
 ```
+## Local backend URL:
+👉 http://localhost:3000/
 
-## To use a local MongoDB:
+## To use local MongoDB:
 
-```bash
+bash
+Copy code
 MONGO_URI=mongodb://localhost:27017/tutorials
-```
-
-## Backend default URL: http://localhost:3000/
-
 ## 🔹 Frontend (Angular)
 ```bash
+Copy code
 cd frontend
 npm install
 ng serve --port 8081
 ```
-
-## Open browser at: http://localhost:8081/
+## Open UI at:
+👉 http://localhost:8081/
 
 # 🐳 3. Dockerization
 ## 🔹 Build Backend Image
-```bash 
+```bash
+Copy code
 docker build -t prasannff/dd-backend:latest -f backend/Dockerfile backend
 ```
-
 ## 🔹 Build Frontend Image
 ```bash
+Copy code
 docker build -t prasannff/dd-frontend:latest -f frontend/Dockerfile frontend
 ```
 ## 🔹 Push Images to Docker Hub
 ```bash
+Copy code
 docker login
 docker push prasannff/dd-backend:latest
 docker push prasannff/dd-frontend:latest
+Docker Hub Links:
+Backend → https://hub.docker.com/r/prasannff/dd-backend
+
+Frontend → https://hub.docker.com/r/prasannff/dd-frontend
 ```
-## Docker Hub:
-
-### Backend → https://hub.docker.com/r/prasannff/dd-backend
-
-### Frontend → https://hub.docker.com/r/prasannff/dd-frontend
-
-# 🧩 4. Docker Compose
-
-## To deploy MongoDB + Backend + Frontend + Nginx:
+# 🧩 4. Docker Compose Deployment
 ```bash
+Copy code
 docker compose pull
 docker compose up -d
 ```
-## Check running services:
+Check containers:
+
 ```bash
+Copy code
 docker compose ps
 ```
-# 🌐 5. AWS EC2 Deployment
-## 1️⃣ Launch Ubuntu EC2 Instance
+This starts:
 
+## MongoDB
+
+## Backend API
+
+## Frontend Angular build
+
+## Nginx Reverse Proxy
+
+# 🌐 5. AWS EC2 Deployment
+## 1️⃣ Launch Ubuntu EC2
 Ubuntu 22.04
 
-t3.micro (Free Tier)
+t3.micro
 
-## 2️⃣ SSH into server
+2️⃣ SSH into Instance
 ```bash
+Copy code
 ssh -i your-key.pem ubuntu@<EC2_PUBLIC_IP>
 ```
-## 3️⃣ Install Docker & Docker Compose
+## 3️⃣ Install Docker & Compose
+(Installed during setup)
 
-(Performed during setup)
-
-## 4️⃣ Clone project
-```bash
+## 4️⃣ Clone Repo
+bash
+Copy code
 git clone https://github.com/Prasannaff/discoverdollar-devops-assignment.git
 cd discoverdollar-devops-assignment
-```
-## 5️⃣ Start containers
+## 5️⃣ Run Containers
 ```bash
+Copy code
 docker compose pull
-docker compose up -d
+docker compose up -d --remove-orphans
 ```
-
-App is now live:
+# App will be live at:
 👉 http://<EC2_PUBLIC_IP>
-👉 https://<your-domain> (if HTTPS configured)
 
-## 🔁 6. Nginx Reverse Proxy
-
+## 🔁 6. NGINX Reverse Proxy
 File: nginx/default.conf
-```bash
+
+nginx
+Copy code
 server {
     listen 80;
 
@@ -143,102 +155,63 @@ server {
         proxy_pass http://backend:3000;
     }
 }
-```
+Serves Angular build
 
-Serves Angular build files
-
-Routes /api → Node backend
+Routes /api → backend
 
 ## 🔄 7. GitHub Actions CI/CD
+GitHub Actions pipeline performs:
 
-The pipeline:
-
-✔ Builds backend Docker image
-✔ Builds frontend Docker image
-✔ Pushes images to Docker Hub
+✔ Build backend Docker image
+✔ Build frontend Docker image
+✔ Push images to Docker Hub
 ✔ SSH into EC2
-✔ Pulls new images
-✔ Restarts containers automatically
+✔ Pull updated images
+✔ Restart containers automatically
 
 Workflow file:
+
 ```bash
+Copy code
 .github/workflows/deploy.yml
 ```
-
 Trigger:
 ✔ Runs automatically on every push to main
 
-## 🔐 8. GitHub Secrets (Required for CI/CD)
-Add these in:
+# 🔐 8. GitHub Secrets (Required)
+Go to:
 Repo → Settings → Secrets → Actions
 
-| Secret Name        | Value                   |
-| ------------------ | ----------------------- |
-| DOCKERHUB_USERNAME | prasannff               |
-| DOCKERHUB_TOKEN    | Docker Hub Access Token |
-| VM_HOST            | <EC2_PUBLIC_IP>         |
-| VM_USER            | ubuntu                  |
-| VM_SSH_KEY         | Entire PEM private key  |
+Secret Name	Value
+DOCKERHUB_USERNAME	prasannff
+DOCKERHUB_TOKEN	Docker Hub Access Token
+VM_HOST	<EC2_PUBLIC_IP>
+VM_USER	ubuntu
+VM_SSH_KEY	Full PEM private key content
 
-## 📸 9. Final Output & Required Screenshots
-```bash
-http://<EC2_PUBLIC_IP>
-```
-
-# 📸 Screenshots
-
-Below are the required screenshots for the DevOps assignment.  
-(Replace the placeholder text with your actual screenshots.)
-
----
-
+# 📸 9. Required Screenshots
 ## 1️⃣ Docker Hub Images
-> Screenshot showing `prasannff/dd-frontend` and `prasannff/dd-backend` in Docker Hub.
-
+Screenshot showing dd-backend and dd-frontend.
 ![Docker Hub Images](screenshots/dockerhub.png)
 
----
-
-## 2️⃣ GitHub Actions – Successful CI/CD Run
-> Screenshot of GitHub Actions workflow with ✔ success indicators.
-
+##  2️⃣ GitHub Actions – Successful CI/CD
 ![GitHub Actions Success](screenshots/github-actions.png)
-
----
-
-## 3️⃣ EC2 Running Containers (`docker compose ps`)
-> Run `docker compose ps` on EC2 and take a screenshot showing all services running:
-- backend  
-- frontend  
-- mongo  
-- nginx  
-
+##  3️⃣ EC2 – Running Containers
 ![EC2 Containers](screenshots/ec2-containers.png)
-
----
-
-## 4️⃣ Live Application UI
-> Screenshot of the deployed application running in the browser.  
-URL: `http://<your-ec2-ip>`
-
-![Live App UI](screenshots/live-ui.png)
-
----
-
-## 5️⃣ Nginx Reverse Proxy Configuration
-> Screenshot of the file `nginx/default.conf`.
-
+##  4️⃣ Live Application UI
 ![Nginx Config](screenshots/nginx-config.png)
+##  5️⃣ NGINX Reverse Proxy Configuration
 
----
-
-## 6️⃣ Repository Folder Structure
-> Screenshot from GitHub repo showing:
-- backend  
-- frontend  
-- nginx  
-- docker-compose.yml  
-- .github/workflows  
-
+##  6️⃣ Repository Structure
 ![Repo Structure](screenshots/repo-structure.png)
 
+✅ Completion
+✔ Full MEAN application successfully containerized
+✔ Automated CI/CD pipeline implemented
+✔ Application deployed via NGINX on AWS EC2
+✔ End-to-end DevOps workflow implemented
+
+# 🙌 Thank You
+This assignment demonstrates the complete DevOps lifecycle:
+Build → Push → Deploy → Automate → Deliver.
+Assignment Successfully Completed 🎉
