@@ -14,6 +14,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - dd-net
 
   backend:
     image: prasannff/dd-backend:latest
@@ -25,7 +27,6 @@ services:
       PORT: 3000
       MONGO_URI: "mongodb://root:example@mongo:27017/yourdb?authSource=admin"
     restart: always
-    # Not publishing backend to host — Nginx will proxy to it
     expose:
       - "3000"
     healthcheck:
@@ -37,11 +38,10 @@ services:
       - dd-net
 
   frontend:
-    # build the frontend image from the local frontend folder
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: prasannff/dd-frontend:temp
+    image: prasannff/dd-frontend:latest
     depends_on:
       - backend
     restart: always
@@ -49,7 +49,6 @@ services:
       - "80"
     networks:
       - dd-net
-
 
   nginx:
     image: nginx:stable-alpine
