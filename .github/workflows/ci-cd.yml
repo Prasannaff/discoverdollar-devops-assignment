@@ -45,19 +45,39 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      # Load the SSH key into the runner SSH agent
       - name: Install SSH key
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      # Quick verify: check we can reach the VM with SSH (fails fast if auth/network is wrong)
+      - name: Verify SSH connectivity
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          # fallback to ubuntu if SSH_USER secret is not set
+          SSH_USER=${SSH_USER:-ubuntu}
+          SSH_PORT=${SSH_PORT:-22}
+          echo "Testing SSH connection to ${SSH_USER}@${SSH_HOST}:${SSH_PORT} ..."
+          # try to run a quick remote command to validate auth & connectivity
+          ssh -o StrictHostKeyChecking=no -o BatchMode=yes -p "${SSH_PORT}" "${SSH_USER}@${SSH_HOST}" "echo SSH_OK" || (echo "SSH connection failed" && exit 1)
+
+      # Deploy: pull latest images & (re)start compose stack
       - name: Deploy to VM
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
         run: |
-          ssh -o StrictHostKeyChecking=no -p ${SSH_PORT:-22} ${SSH_USER}@${SSH_HOST} '
-            cd /path/to/your/compose/folder || exit 1
+          SSH_USER=${SSH_USER:-ubuntu}
+          SSH_PORT=${SSH_PORT:-22}
+          echo "Deploying to ${SSH_USER}@${SSH_HOST}:${SSH_PORT} ..."
+          ssh -o StrictHostKeyChecking=no -p "${SSH_PORT}" "${SSH_USER}@${SSH_HOST}" '
+            # change to folder where your docker-compose.yml lives (edit this path)
+            cd /path/to/your/compose/folder || { echo "compose folder not found"; exit 1; }
             docker compose pull --ignore-pull-failures
             docker compose up -d --remove-orphans
           '
