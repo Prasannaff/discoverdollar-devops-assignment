@@ -5,12 +5,13 @@ services:
     image: mongo:6.0
     container_name: discoverdollar-devops-assignment-mongo-1
     restart: always
+    command: ["mongod", "--bind_ip_all", "--noauth"]
     volumes:
       - ./data/db:/data/db
     ports:
       - "27017:27017"
     healthcheck:
-      test: ["CMD-SHELL", "echo 'db.runCommand({ ping: 1 })' | mongosh --quiet mongodb://localhost:27017/dd_db || nc -z localhost 27017 >/dev/null"]
+      test: ["CMD-SHELL", "nc -z localhost 27017 >/dev/null"]
       interval: 10s
       timeout: 5s
       retries: 10
