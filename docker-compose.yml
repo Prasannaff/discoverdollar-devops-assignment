@@ -3,10 +3,6 @@ services:
     image: mongo:6.0
     container_name: discoverdollar-devops-assignment-mongo-1
     restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-    command: ["mongod", "--auth", "--bind_ip_all"]
     volumes:
       - ./data/db:/data/db
     ports:
@@ -19,11 +15,11 @@ services:
     container_name: discoverdollar-devops-assignment-backend-1
     restart: always
     environment:
-      # Mongo connection string with auth
-      MONGO_URI: mongodb://root:example@mongo:27017/crud?authSource=admin
+      # no username/password now
+      MONGO_URI: mongodb://mongo:27017/crud
       PORT: 3000
     depends_on:
-      - mongo         # ✅ simple depends_on, no health condition
+      - mongo
     ports:
       - "3000:3000"
     networks:
